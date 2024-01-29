@@ -1,7 +1,5 @@
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <dlfcn.h>
-
 
 // total bytes allocated by malloc so far
 int total_bytes=0;
@@ -15,7 +13,7 @@ void* malloc(size_t size) {
 
   void* ptr = original_malloc(size);
   total_bytes += size;
-  fprintf(stderr, "Bytes allocated so far %zu \n", total_bytes);
+  fprintf(stderr, "Bytes allocated so far %d \n", total_bytes);
 
   return ptr;
 }
