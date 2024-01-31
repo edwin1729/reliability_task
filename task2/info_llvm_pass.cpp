@@ -1,40 +1,44 @@
 #include <algorithm>
+#include <map>
 
 #include "llvm/Pass.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Function.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "llvm/IR/LegacyPassManager.h"
-
 using namespace llvm;
 
 namespace {
-int countF = 0;
 struct Info : public FunctionPass {
+  int countF = 0;  // total number of functions
+  int countBB = 0; // total number of basic blocks
+
+  // histogram data: instr count -> basic block count
+  std::map<int, int> countI_to_BB {}; 
+
   static char ID;
   Info() : FunctionPass(ID) {}
 
-  bool doInitialization(Module& mod) override {
-    errs() << "Total number of functions: " << mod.size() << '\n';
-    return false;
-  }
-
-  bool runOnFunction(Function& func) override {
+  bool runOnFunction(Function& F) override {
     ++countF;
-    int count = 0;
-    for (const auto& x : func) {
-      ++count;
+    countBB += F.size(); // add number of basic blocks in current function
+    for (const auto& BB : F) {
+      int countI = BB.size(); // number of instructions in basic block
+      if(countI_to_BB.find(countI) == countI_to_BB.end()) {
+        countI_to_BB[countI] = 1;  // new entry in map
+      } else {
+        countI_to_BB[countI] += 1; // old entry update
+      }
     }
-    errs() << "Foo: ";
-    errs().write_escaped(func.getName()) << '\n';
-    errs() << "Basic Blocks: " << func.size() << '\n';
-    errs() << "Basic Blocks: " << count << '\n';
     return false;
   }
 
-  bool doFinalization(Module &mod) override {
+  bool doFinalization(Module &M) override {
     errs() << "Total number of functions: " << countF << '\n';
+    errs() << "Total number of basic blocks: " << countBB << '\n';
+    for (auto const& [key, val] : countI_to_BB) {  
+      errs() << key << ": " << val << '\n';
+    }
     return false;
   }
 }; // end of struct Info
