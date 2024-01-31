@@ -1,5 +1,7 @@
+#include <cstdlib>
 #include <algorithm>
 #include <map>
+#include <stdexcept>
 
 #include "llvm/Pass.h"
 #include "llvm/IR/Module.h"
@@ -33,16 +35,33 @@ struct Info : public FunctionPass {
     return false;
   }
 
+  // Writing output to stderr and data file (for gnuplot)
   bool doFinalization(Module &M) override {
+    // The outout for task 2a
     errs() << "Total number of functions: " << countF << '\n';
     errs() << "Total number of basic blocks: " << countBB << '\n';
-    for (auto const& [key, val] : countI_to_BB) {  
-      errs() << key << ": " << val << '\n';
+
+    // task 2b. Currently I throw exception if IO errors occur
+    // An environment variable specifies file to write to
+    if (const char* file_name = std::getenv("DATA")) {
+      std::error_code EC;
+      raw_fd_ostream file(file_name, EC);
+      if (EC) {
+        throw std::runtime_error("Unexpected error creating a file");
+      }
+      
+      for (auto const& [key, val] : countI_to_BB) {  
+        file << key << ' ' << val << '\n';
+      }
     }
+    else {
+      throw std::runtime_error("Erroneous Makefile: env var doesn't exist");
+    }
+
     return false;
   }
-}; // end of struct Info
-}  // end of anonymous namespace
+};
+}
 
 char Info::ID = 0;
 static RegisterPass<Info> X("info", "Function and Basic Block info",
