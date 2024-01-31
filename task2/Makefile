@@ -13,6 +13,8 @@ $(program).bc: $(program).c
 llvm_pass: info_llvm_pass.so $(program).bc
 	opt -analyze -load ./info_llvm_pass.so -info < $(program).bc > /dev/null
 
+$(DATA): llvm_pass
+
 # $(DATA) depends on llvm_pass implicitly
 plot_histogram: $(DATA)
 	gnuplot histogram.gp
