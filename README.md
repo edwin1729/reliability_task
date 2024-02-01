@@ -14,9 +14,6 @@ The bytes allocated is tracked and printed during calls to `original_malloc`. <b
 `make` generates `malloc_intercept.so` which can be used with `LD_PRELOAD`. <br>
 The make file uses the same program `seq 1 5` as in the example. <br>
 
-#### Known problem: 
-`RTLD_NEXT` doesn't seem to work on a virtual machine (ubuntu). `dlsym` gives the newly defined function instead of the original, resulting in infinte recursion. Nevertheless task1 works well on my PC and lab machines.
-
 ## Task 2
 Inside the directory, `make llvm_pass` prints the number of functions and blocks, as well as generating data for gnuplot. <br>
 `make plot_histogram` will create `Basic Blocks Histogram.pdf` <br>

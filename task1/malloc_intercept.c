@@ -4,16 +4,21 @@
 // total bytes allocated by malloc so far
 int total_bytes=0;
 
+void* (*original_malloc)(size_t size)  = NULL;
+
 // Overriding malloc function
 void* malloc(size_t size) {
 
   // Load the original malloc function
-  typedef void* (*malloc_t)(size_t size); //Pointer to malloc func type
-  malloc_t original_malloc = (malloc_t)dlsym(RTLD_NEXT, "malloc");
+  // The if check is necessary so that we don't get older and older versions of malloc
+  // This happens to not be a problem here since we are only defining the 2nd version
+  if (original_malloc == NULL)
+    original_malloc = dlsym(RTLD_NEXT, "malloc");
 
-  void* ptr = original_malloc(size);
+  // Print output
   total_bytes += size;
   fprintf(stderr, "Bytes allocated so far %d \n", total_bytes);
 
-  return ptr;
+  // Actually malloc some bytes
+  return original_malloc(size);
 }
